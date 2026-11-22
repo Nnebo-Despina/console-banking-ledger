@@ -1,54 +1,61 @@
 package com.team.banking.service;
 
 import com.team.banking.model.Customer;
-import com.team.banking.repository.CustomerRepository;
+import com.team.banking.model.User;
+import com.team.banking.repository.UserRepository;
 
 import java.util.List;
 import java.util.UUID;
 
 public class CustomerService {
-
-    private final CustomerRepository customerRepository;
+    private final UserRepository userRepository;
     private final AuthenticationService authenticationService;
 
-    public CustomerService(CustomerRepository customerRepository,
-                           AuthenticationService authenticationService) {
-        this.customerRepository = customerRepository;
+    public CustomerService(UserRepository userRepository, AuthenticationService authenticationService) {
+        this.userRepository = userRepository;
         this.authenticationService = authenticationService;
     }
 
     public Customer registerCustomer(String fullName, String email, String password) {
+        return registerCustomer(fullName, email, password, false);
+    }
+
+    public Customer registerCustomer(String fullName, String email, String password, boolean forcePasswordChange) {
         String cleanName = Validators.requireText(fullName, "Full name");
         String cleanEmail = Validators.requireText(email, "Email");
-
         if (!cleanEmail.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
             throw new IllegalArgumentException("Email format is not valid.");
         }
-        if (customerRepository.findByEmail(cleanEmail).isPresent()) {
-            throw new IllegalArgumentException("A customer with this email already exists.");
+        if (userRepository.findByEmail(cleanEmail).isPresent()) {
+            throw new IllegalArgumentException("A user with this email already exists.");
         }
-
         Customer customer = new Customer(UUID.randomUUID().toString(), cleanName, cleanEmail);
-
-        // Password is checked and stored BEFORE saving the customer, so a bad
-        // password cannot leave behind a customer who can never log in.
-        authenticationService.register(customer, password);
-        customerRepository.save(customer);
-
+        authenticationService.register(customer, password, forcePasswordChange);
         return customer;
     }
 
     public Customer getById(String userId) {
-        return customerRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Customer not found."));
+        if (!(user instanceof Customer customer)) {
+            throw new IllegalArgumentException("The supplied user ID does not belong to a customer.");
+        }
+        return customer;
     }
 
-    public Customer getByEmail(String email) {
-        return customerRepository.findByEmail(email)
+    public Customer getByIdOrEmail(String value) {
+        User user = userRepository.findById(value).or(() -> userRepository.findByEmail(value))
                 .orElseThrow(() -> new IllegalArgumentException("Customer not found."));
+        if (!(user instanceof Customer customer)) {
+            throw new IllegalArgumentException("The supplied user is not a customer.");
+        }
+        return customer;
     }
 
     public List<Customer> getAllCustomers() {
-        return customerRepository.findAll();
+        return userRepository.findAll().stream()
+                .filter(Customer.class::isInstance)
+                .map(Customer.class::cast)
+                .toList();
     }
 }

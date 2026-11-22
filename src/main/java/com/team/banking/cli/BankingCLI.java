@@ -30,9 +30,7 @@ public final class BankingCLI {
         String line;
         while ((line = readLine("bank> ")) != null) {
             try {
-                if (!parser.parse(line).execute(this::readPassword)) {
-                    return;
-                }
+                if (!parser.parse(line).execute(this::readPassword)) return;
             } catch (IllegalArgumentException | IllegalStateException e) {
                 errors.println("Error: " + e.getMessage());
             }
@@ -40,30 +38,18 @@ public final class BankingCLI {
     }
 
     private String readPassword() {
-        if (console == null) {
-            return readLine("Password (input may be visible): ");
-        }
+        if (console == null) return readLine("Password (input may be visible): ");
         char[] password = console.readPassword("Password: ");
-        if (password == null) {
-            return null;
-        }
-        try {
-            return new String(password);
-        } finally {
-            Arrays.fill(password, '\0');
-        }
+        if (password == null) return null;
+        try { return new String(password); }
+        finally { Arrays.fill(password, '\0'); }
     }
 
     private String readLine(String prompt) {
-        if (console != null) {
-            return console.readLine("%s", prompt);
-        }
+        if (console != null) return console.readLine("%s", prompt);
         output.print(prompt);
         output.flush();
-        try {
-            return input.readLine();
-        } catch (IOException e) {
-            throw new UncheckedIOException("Could not read console input.", e);
-        }
+        try { return input.readLine(); }
+        catch (IOException e) { throw new UncheckedIOException("Could not read console input.", e); }
     }
 }

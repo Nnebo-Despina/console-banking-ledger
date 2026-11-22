@@ -2,46 +2,31 @@ package com.team.banking.service;
 
 import com.team.banking.model.Account;
 import com.team.banking.model.Transaction;
+import com.team.banking.model.UserRole;
 
 import java.math.BigDecimal;
 
 public class TransferService {
-
     private final AccountService accountService;
     private final TransactionService transactionService;
+    private final AuthenticationService authenticationService;
 
-    public TransferService(AccountService accountService, TransactionService transactionService) {
+    public TransferService(AccountService accountService, TransactionService transactionService,
+                           AuthenticationService authenticationService) {
         this.accountService = accountService;
         this.transactionService = transactionService;
+        this.authenticationService = authenticationService;
     }
 
-    /** Moves money from one of MY accounts to any existing account. */
+    /** A customer may transfer from their own account to any existing account. */
     public Transaction transfer(String fromAccountNumber, String toAccountNumber, BigDecimal amount) {
+        authenticationService.requireRole(UserRole.CUSTOMER);
         Validators.requirePositiveMoney(amount, "Transfer amount");
-        Validators.requireText(fromAccountNumber, "Source account number");
-        Validators.requireText(toAccountNumber, "Destination account number");
-
-        if (fromAccountNumber.trim().equals(toAccountNumber.trim())) {
-            throw new IllegalArgumentException("You cannot transfer to the same account.");
-        }
-
-        Account source = accountService.getOwnedAccount(fromAccountNumber);
-        Account destination = accountService.getAccount(toAccountNumber);
-
-        transactionService.checkDailyLimit(source, amount);
-
-        source.withdraw(amount);
-        try {
-            destination.deposit(amount);
-        } catch (RuntimeException e) {
-            source.deposit(amount); // undo the withdrawal so no money disappears
-            throw e;
-        }
-
-        Transaction outgoing = transactionService.record(
-                source, TransactionService.TYPE_TRANSFER_OUT, amount);
-        transactionService.record(
-                destination, TransactionService.TYPE_TRANSFER_IN, amount);
-        return outgoing;
+        String from = Validators.requireText(fromAccountNumber, "Source account number");
+        String to = Validators.requireText(toAccountNumber, "Destination account number");
+        if (from.equals(to)) throw new IllegalArgumentException("You cannot transfer to the same account.");
+        Account source = accountService.getOwnedAccount(from);
+        Account destination = accountService.getAccount(to);
+        return transactionService.transfer(source, destination, amount);
     }
 }

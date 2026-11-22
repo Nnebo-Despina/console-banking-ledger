@@ -12,14 +12,10 @@ import java.util.Collections;
 import java.util.List;
 
 public class StatementService {
-
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-
     private final AccountService accountService;
 
-    public StatementService(AccountService accountService) {
-        this.accountService = accountService;
-    }
+    public StatementService(AccountService accountService) { this.accountService = accountService; }
 
     public List<Transaction> getTransactions(String accountNumber) {
         Account account = accountService.getOwnedAccount(accountNumber);
@@ -27,23 +23,13 @@ public class StatementService {
     }
 
     public List<Transaction> getTransactionsBetween(String accountNumber, LocalDate from, LocalDate to) {
-        if (from == null || to == null) {
-            throw new IllegalArgumentException("Both dates are required.");
-        }
-        if (from.isAfter(to)) {
-            throw new IllegalArgumentException("Start date cannot be after end date.");
-        }
-
+        if (from == null || to == null) throw new IllegalArgumentException("Both dates are required.");
+        if (from.isAfter(to)) throw new IllegalArgumentException("Start date cannot be after end date.");
         Account account = accountService.getOwnedAccount(accountNumber);
-        List<Transaction> result = new ArrayList<>();
-
-        for (Transaction t : account.getTransactions()) {
-            LocalDate date = t.getTransactionDate().toLocalDate();
-            if (!date.isBefore(from) && !date.isAfter(to)) {
-                result.add(t);
-            }
-        }
-        return Collections.unmodifiableList(result);
+        return account.getTransactions().stream()
+                .filter(t -> !t.getTransactionDate().toLocalDate().isBefore(from)
+                        && !t.getTransactionDate().toLocalDate().isAfter(to))
+                .toList();
     }
 
     public String generateStatement(String accountNumber) {
@@ -61,30 +47,24 @@ public class StatementService {
         BigDecimal totalIn = BigDecimal.ZERO;
         BigDecimal totalOut = BigDecimal.ZERO;
         StringBuilder lines = new StringBuilder();
-
         for (Transaction t : transactions) {
             lines.append(String.format("%-17s %-16s %12s%n",
-                    t.getTransactionDate().format(DATE_FORMAT),
-                    t.getTransactionType(),
-                    money(t.getAmount())));
-
-            if (isCredit(t.getTransactionType())) {
-                totalIn = totalIn.add(t.getAmount());
-            } else {
-                totalOut = totalOut.add(t.getAmount());
-            }
+                    t.getTransactionDate().format(DATE_FORMAT), t.getTransactionType(), money(t.getAmount())));
+            if (isCredit(t.getTransactionType())) totalIn = totalIn.add(t.getAmount());
+            else totalOut = totalOut.add(t.getAmount());
         }
-
+        String nl = System.lineSeparator();
         StringBuilder out = new StringBuilder();
-        out.append("==================== ACCOUNT STATEMENT ====================").append(System.lineSeparator());
-        out.append("Account : ").append(account.getAccountNumber()).append(System.lineSeparator());
-        out.append("Type    : ").append(account.getClass().getSimpleName()).append(System.lineSeparator());
-        out.append("Owner   : ").append(account.getOwner().getFullname()).append(System.lineSeparator());
-        out.append(periodLabel).append(System.lineSeparator());
-        out.append("-----------------------------------------------------------").append(System.lineSeparator());
+        out.append("==================== ACCOUNT STATEMENT ====================").append(nl);
+        out.append("Account : ").append(account.getAccountNumber()).append(nl);
+        out.append("Type    : ").append(account.getClass().getSimpleName()).append(nl);
+        out.append("Owner   : ").append(account.getOwner().getFullname()).append(nl);
+        out.append("Status  : ").append(account.isClosed() ? "CLOSED" : "ACTIVE").append(nl);
+        out.append(periodLabel).append(nl);
+        out.append("-----------------------------------------------------------").append(nl);
         out.append(String.format("%-17s %-16s %12s%n", "Date", "Type", "Amount"));
-        out.append(lines.length() == 0 ? "(no transactions)" + System.lineSeparator() : lines.toString());
-        out.append("-----------------------------------------------------------").append(System.lineSeparator());
+        out.append(lines.length() == 0 ? "(no transactions)" + nl : lines);
+        out.append("-----------------------------------------------------------").append(nl);
         out.append(String.format("Total in : %s%n", money(totalIn)));
         out.append(String.format("Total out: %s%n", money(totalOut)));
         out.append(String.format("Current balance: %s%n", money(account.getBalance())));

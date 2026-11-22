@@ -1,0 +1,9 @@
+[
+  {
+    "accountNumber": "641cef8d-334d-4c5b-8dc7-6937601f5283",
+    "transactionId": "d6ad5e84-1b34-4a4f-bacc-2ba756495854",
+    "type": "OPENING_DEPOSIT",
+    "amount": "35000",
+    "timestamp": "2026-11-22T10:17:16.6139393"
+  }
+]
