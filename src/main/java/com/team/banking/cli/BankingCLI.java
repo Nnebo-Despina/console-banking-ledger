@@ -30,19 +30,19 @@ public final class BankingCLI {
         String line;
         while ((line = readLine("bank> ")) != null) {
             try {
-                if (!parser.parse(line).execute(this::readPassword)) return;
+                if (!parser.parse(line).execute(this::readPin)) return;
             } catch (IllegalArgumentException | IllegalStateException e) {
                 errors.println("Error: " + e.getMessage());
             }
         }
     }
 
-    private String readPassword() {
-        if (console == null) return readLine("Password (input may be visible): ");
-        char[] password = console.readPassword("Password: ");
-        if (password == null) return null;
-        try { return new String(password); }
-        finally { Arrays.fill(password, '\0'); }
+    private String readPin() {
+        if (console == null) return readLine("PIN (input may be visible): ");
+        char[] pin = console.readPassword("PIN: ");
+        if (pin == null) return null;
+        try { return new String(pin); }
+        finally { Arrays.fill(pin, '\0'); }
     }
 
     private String readLine(String prompt) {

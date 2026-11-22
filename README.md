@@ -1,253 +1,240 @@
-# CONSOLE BANKING LEDGER
-**Java Console Banking Application**
+# Console Banking Ledger
 
-**Technologies:** Java 17+, Maven, Gson, JSON File Persistence, Object-Oriented Programming
+**Java 17+ | Maven | Gson | JSON persistence | Command-line application**
 
-## 1. Project Overview
+## 1. Overview
 
-The Console Banking Ledger is a Java-based command-line banking application designed to manage customers, bank accounts, financial transactions, and account statements.
+Console Banking Ledger is a Java command-line application for managing customer profiles, savings and current accounts, financial transactions, and account statements. It has two roles:
 
-The system supports two user roles: **Administrator** and **Customer**. Administrators manage customer records and banking operations, while customers can access their personal accounts and perform permitted financial transactions.
+- **Administrator:** manages customers and accounts, unlocks users, resets PINs, views the system ledger, posts monthly savings interest, and reverses eligible transactions.
+- **Customer:** manages their own accounts, deposits and withdraws money, transfers funds, filters transaction history, and exports statements.
 
-The application uses JSON files for persistent data storage, allowing customer information, account records, and transaction histories to remain available after the application closes.
+The application stores records locally in JSON files. It is a teaching project and demonstration ledger, not a production banking platform.
 
-## 2. Installation and Execution
+## 2. Requirements and running the application
 
-### Requirements
-- Java Development Kit (JDK) 17 or newer.
+Requirements:
+
+- JDK 17 or newer.
 - Apache Maven.
-- Gson dependency for JSON processing.
+- Gson (already used by the project's JSON repositories).
 
-### Run the application
-
-From the project root directory, execute:
+Run from the project root:
 
 ```bash
-mvn compile exec:java
+mvn clean compile exec:java
 ```
 
-To execute the project's automated tests:
+Run automated tests:
 
 ```bash
 mvn test
 ```
 
-## 3. Customer Features and Commands
+The source targets Java 17. In `pom.xml`, prefer the Maven compiler setting `<maven.compiler.release>17</maven.compiler.release>` rather than separately setting `source` and `target`.
 
-Customers can register, log in, manage their accounts, and perform financial transactions.
+## 3. Authentication and PIN security
 
-| Command | Description |
+Users sign in with a user ID or email address and a **numeric PIN containing 4–6 digits**. The PIN is entered at a separate prompt and is never stored as plain text.
+
+The authentication service uses:
+
+- A randomly generated salt for each user.
+- PBKDF2-HMAC-SHA256 to derive a stored PIN hash.
+- Three consecutive failed attempts before the user is locked.
+- Automatic failed-attempt reset after a successful login.
+- Administrator-only unlocking and PIN resets.
+- Forced PIN changes for first-time administrator login and administrator-issued temporary PINs.
+
+### First administrator login
+
+If there is no administrator in `data/users.json`, the application creates one on first startup:
+
+| Field | Default |
 |---|---|
-| `register <email> "<full name>"` | Register a new customer. |
-| `login <email>` | Sign in using an email and password. |
-| `logout` | End the current session. |
-| `open-savings <initial-deposit> <daily-limit> <minimum-balance>` | Open a savings account. |
-| `open-current <initial-deposit> <daily-limit> <overdraft-limit>` | Open a current account. |
-| `accounts` | Display the customer's accounts and balances. |
-| `balance <account>` | Check an account balance. |
-| `deposit <account> <amount>` | Deposit money. |
-| `withdraw <account> <amount>` | Withdraw money, subject to account rules. |
-| `transfer <from-account> <to-account> <amount>` | Transfer money between accounts. |
-| `statement <account> [<from-date> <to-date>]` | Generate an account statement, optionally for a date range. |
-| `help` | Display commands available to the customer. |
-| `exit` | Close the application. |
+| Email | `admin@bank.local` |
+| Temporary PIN | `482916` |
 
-Passwords are entered through a separate prompt rather than being included in the command itself.
-
-## 4. Administrator Features and Commands
-
-The application includes an Administrator role with additional privileges for managing the banking system.
-
-### Administrator capabilities
-
-- Create customer accounts and register new customers.
-- View all registered customers.
-- Retrieve an individual customer's information.
-- View accounts belonging to a particular customer.
-- Open savings and current accounts for existing customers.
-- Unlock users whose accounts have been locked following failed login attempts.
-- Reset customer passwords.
-- Close accounts with a zero balance.
-- View the system-wide transaction ledger.
-
-### Administrator commands
-
-| Command | Description |
-|---|---|
-| `login <email>` | Sign in as administrator. |
-| `customers` | List registered customers. |
-| `create-customer <email> "<full name>"` | Create a customer account. |
-| `customer <customer-id-or-email>` | View customer information. |
-| `accounts-for <customer-id>` | View a customer's accounts. |
-| `all-accounts` | View all bank accounts. |
-| `open-savings-for <customer-id> <deposit> <daily-limit> <minimum-balance>` | Open a savings account for a customer. |
-| `open-current-for <customer-id> <deposit> <daily-limit> <overdraft-limit>` | Open a current account for a customer. |
-| `unlock <email>` | Unlock a customer's account. |
-| `set-password <email>` | Reset a customer's password. |
-| `close-account <account-number>` | Close an eligible account. |
-| `ledger` | View all recorded financial transactions. |
-| `change-password` | Change the administrator's password. |
-| `logout` | End the administrator session. |
-
-Commands are role-restricted, meaning customers cannot execute administrator-only operations.
-
-## 5. Administrator Account Setup
-
-On the first application startup, the system automatically creates a default administrator if no administrator account already exists.
-
-**Default credentials:**
-
-- Email: `admin@bank.local`
-- Temporary password: `ChangeMe123!`
-
-To log in:
+Set `BANK_ADMIN_EMAIL` and `BANK_ADMIN_PIN` environment variables before the first run to use different initial administrator credentials. The PIN must contain 4–6 digits. Change the temporary PIN immediately after signing in:
 
 ```text
 login admin@bank.local
+change-pin
 ```
 
-The administrator must change the temporary password before accessing the other administrative functions.
+The CLI prompts for the current PIN and then the new PIN.
+
+When no terminal console is available (for example, some IDE consoles), PIN input may be visible while typing. Use a terminal with a Java console for hidden PIN input.
+
+## 4. Customer commands
+
+Type `help` to see the commands available to the current role.
+
+| Command | Description |
+|---|---|
+| `register <email> "<full name>"` | Register a customer; the CLI prompts for a 4–6 digit PIN. |
+| `login <user-id-or-email>` | Sign in using the PIN prompt. |
+| `logout` | End the current session. |
+| `change-pin` | Change the current user's PIN. |
+| `open-savings <initial-deposit> <daily-limit> <minimum-balance>` | Open a savings account. |
+| `open-current <initial-deposit> <daily-limit> <overdraft-limit>` | Open a current account. |
+| `accounts` | List the customer's accounts and balances. |
+| `balance <account>` | Show an account balance. |
+| `deposit <account> <amount>` | Deposit money. |
+| `withdraw <account> <amount>` | Withdraw money, subject to account rules and fees. |
+| `transfer <from-account> <to-account> <amount>` | Transfer money to another existing account. |
+| `statement <account> [<from-date> <to-date>]` | Display a statement, optionally for an inclusive date range. |
+| `transactions <account> [<type|->] [<min|->] [<max|->] [<from-date> <to-date>]` | Filter transaction history using any combination of type, amount bounds, and date range. |
+| `export-statement <account> [<from-date> <to-date>]` | Export a statement as a JSON file under `statements/`. |
+| `help` | Show commands available to the current role. |
+| `exit` | Close the application. |
+
+Use `-` as a placeholder when omitting a filter but supplying a later filter. For example:
 
 ```text
-change-password
+transactions 8ab... DEPOSIT 100.00 5000.00 2026-01-01 2026-01-31
+transactions 8ab... - 100.00 -
+transactions 8ab... - - - 2026-01-01 2026-01-31
+export-statement 8ab... 2026-01-01 2026-01-31
 ```
 
-The system prompts for the current password and the new password.
+Dates use `YYYY-MM-DD`. Amounts must be positive where required and have no more than two decimal places.
 
-## 6. Security and Authentication
+## 5. Administrator commands
 
-The application implements persistent authentication and basic account protection.
+The administrator has additional privileges. The command parser and service layer both enforce role access.
 
-Security features include:
+| Command | Description |
+|---|---|
+| `customers` | List registered customers. |
+| `create-customer <email> "<full name>"` | Create a customer; the CLI prompts for a temporary PIN. |
+| `customer <customer-id-or-email>` | View customer details and their accounts. |
+| `accounts-for <customer-id>` | List one customer's accounts. |
+| `all-accounts` | List all accounts. |
+| `open-savings-for <customer-id> <deposit> <daily-limit> <minimum-balance>` | Open a savings account for an existing customer. |
+| `open-current-for <customer-id> <deposit> <daily-limit> <overdraft-limit>` | Open a current account for an existing customer. |
+| `unlock <user-id-or-email>` | Unlock a locked user. |
+| `set-pin <user-id-or-email>` | Reset a user's PIN; the user must change it after login. |
+| `close-account <account-number>` | Close an account only when its balance is exactly zero. |
+| `ledger` | View the system-wide transaction ledger. |
+| `reverse-transaction <account> <transaction-id>` | Create a compensating entry for an eligible transaction. A transfer reversal compensates both transfer sides. |
+| `post-monthly-interest` | Post the current month's savings interest, without duplicating an existing posting. |
 
-- Passwords are never stored as plain text.
-- Passwords are hashed using PBKDF2-HMAC-SHA256 with randomly generated salts.
-- Authentication credentials are saved in `users.json`.
-- Three consecutive failed login attempts lock a user account.
-- Successful login resets the failed-login counter.
-- Administrators can unlock locked customer accounts.
-- Administrators and customers have different access permissions.
-- First-time and administrator-issued temporary passwords must be changed before normal access.
+Customer creation and PIN resets prompt for a PIN rather than accepting it as a command-line argument.
 
-## 7. Account Types and Financial Operations
+## 6. Account rules, interest, and withdrawal fees
 
-The application supports two account types.
+### Savings accounts
 
-**Savings Account**
-- Requires an initial deposit that meets the configured minimum balance.
-- Enforces a minimum balance during withdrawals.
-- Has a configurable daily withdrawal limit.
-- Calculates interest using a savings account interest method.
+- Enforce the configured minimum balance.
+- Enforce the account's daily withdrawal cap.
+- Earn interest at **2% per annum**, calculated as one-twelfth of the annual rate and rounded to two decimal places using `HALF_UP`.
+- Monthly interest is recorded as an `INTEREST` transaction.
 
-**Current Account**
-- Supports an overdraft facility.
-- Enforces a configured overdraft limit.
-- Has a configurable daily withdrawal limit.
-- Does not currently calculate interest.
+Monthly interest posting is attempted automatically when the application starts. An account receives no more than one `INTEREST` entry per calendar month. Administrators can also run `post-monthly-interest`; repeating it in the same month does not duplicate the credit. The application must be run at least once during a month for that month's automatic posting to occur; it does not currently calculate backdated interest for months in which the application was never run.
 
-All monetary calculations use Java's `BigDecimal` rather than floating-point types to maintain decimal precision.
+### Current accounts
 
-The application validates monetary inputs to ensure that amounts are positive where required and do not exceed two decimal places.
+- Permit an overdraft up to the configured limit.
+- Enforce the configured daily withdrawal cap.
+- Do not earn interest.
+- The first **five cash withdrawals per calendar month are free**. A flat fee is applied to the sixth and subsequent cash withdrawals in that month. The fee is recorded as a separate `FEE` ledger entry.
 
-## 8. System Architecture and Design Patterns
+The default flat fee is **₦50.00** because the assignment brief does not specify a fee amount. Configure a different non-negative fee (with at most two decimal places) using `BANK_CURRENT_WITHDRAWAL_FEE` before starting the application. Transfers are not counted as cash withdrawals for this fee rule.
 
-The application follows a layered architecture to separate responsibilities.
+All monetary calculations use `BigDecimal`; `double` and `float` are not used for account balances or transaction amounts.
+
+## 7. Reversals and ledger integrity
+
+Transactions are append-only. A reversal does not edit or delete the original entry; it creates a new `REVERSAL` entry that references the original transaction ID.
+
+The administrator can reverse eligible deposits, opening deposits, withdrawals, fees, and interest entries. A transfer reversal finds the matching debit and credit entries and compensates both accounts in one coordinated operation. A transaction cannot be reversed more than once. A reversal is rejected when its compensating operation would violate the account's minimum-balance or overdraft rules.
+
+Every ledger record contains a transaction ID, type, amount, timestamp, account number, resulting balance, description, and reference ID. Transfer debit and credit entries share a transfer reference.
+
+## 8. Filtering and statement export
+
+Transaction history can be filtered by:
+
+- Transaction type (for example, `DEPOSIT`, `WITHDRAWAL`, `TRANSFER_IN`, `FEE`, `INTEREST`, or `REVERSAL`).
+- Minimum amount.
+- Maximum amount.
+- Inclusive start and end dates.
+
+Filters can be combined in one `transactions` command. `export-statement` writes a JSON document containing the account details, statement period, export timestamp, current balance, and selected transaction records. Exported files are saved in the `statements/` directory, which is separate from the application's live data files.
+
+## 9. Architecture and design patterns
+
+The project separates responsibilities into packages:
 
 | Package | Responsibility |
 |---|---|
-| `model` | Represents users, customers, administrators, accounts, and transactions. |
-| `service` | Handles authentication, account management, deposits, withdrawals, transfers, and statements. |
-| `repository` | Defines interfaces for accessing and storing application data. |
-| `repository.json` | Implements JSON-based data persistence using Gson. |
-| `repository.memory` | Provides in-memory repository implementations for testing and development. |
-| `factory` / `model` | Provides account creation and restoration through `AccountFactory`. |
-| `command` | Parses commands and controls command execution. |
-| `cli` | Handles terminal input, output, and user interaction. |
+| `model` | Users, roles, customers, accounts, and immutable transaction records. |
+| `service` | Authentication, customer/admin operations, account management, transfers, interest, fees, reversals, and statements. |
+| `repository` | Storage contracts for users, accounts, and transactions. |
+| `repository.json` | Gson-based JSON persistence. |
+| `repository.memory` | In-memory repositories for demonstrations and tests. |
+| `strategy` | Interchangeable interest and withdrawal-fee calculation policies. |
+| `command` | Command parsing, access rules, and dispatch. |
+| `cli` | Terminal input and output. |
+| `exception` | Specific exceptions for expected banking and authentication failures. |
 
-The system applies the following software design patterns:
+The implementation demonstrates:
 
-- **Factory Pattern:** Creates savings and current account objects and restores previously saved accounts.
-- **Repository Pattern:** Separates business logic from data storage.
-- **Strategy Pattern:** Provides interchangeable implementations for interest and withdrawal-fee calculations.
-- **Object-Oriented Programming:** Uses inheritance, encapsulation, abstraction, and polymorphism to represent banking entities and their behaviour.
+- **Factory Pattern:** `AccountFactory` creates and reconstructs the correct account subtype while retaining saved account numbers.
+- **Repository Pattern:** services depend on repository interfaces rather than JSON implementation classes.
+- **Strategy Pattern:** `SavingsInterestStrategy` and `CurrentAccountFeeStrategy` implement changeable financial rules.
+- **Object-oriented design:** inheritance and polymorphism represent savings/current account differences; encapsulation keeps domain state within model objects.
 
-## 9. Data Persistence and File Management
+## 10. Concurrency and consistency
 
-The application uses local JSON files instead of a database server.
+Financial operations are coordinated in the service layer. A fair ledger lock serializes commits to the shared ledger, and per-account locks protect the affected accounts. When more than one account is involved, locks are acquired in ascending account-number order and released in reverse order to avoid lock-order deadlocks.
 
-The `data/` directory contains:
+Transfers and transfer reversals are treated as single logical operations. The JSON repository writes the ledger first and then replaces all affected account snapshots in one account-file update. Each account's `transactionCount` is a commit marker: during startup recovery, ledger entries beyond the committed count are discarded if the process stopped between the two file writes.
 
-| File | Purpose |
+This coordination protects operations within one running application process. It is not a distributed lock and does not make it safe to run multiple application processes against the same `data/` directory simultaneously. Run one instance at a time.
+
+## 11. JSON data files
+
+Application data is stored under `data/`:
+
+| File | Contents |
 |---|---|
-| `users.json` | Stores customer and administrator records, roles, and authentication information. |
-| `accounts.json` | Stores account numbers, owners, balances, types, and account limits. |
-| `transactions.json` | Stores transaction histories and references. |
+| `users.json` | User IDs, names, email addresses, roles, salted PIN hashes, failed-attempt counts, lock status, and forced-PIN-change status. |
+| `accounts.json` | Account numbers, owners, account type, balances, account limits, closed status, and transaction-count commit markers. |
+| `transactions.json` | The system-wide append-only transaction ledger. |
 
-Data is loaded when the application starts and updated after successful operations.
+Money values are stored as decimal strings. Timestamps use ISO-8601 local date-time strings. JSON writes use a temporary file and attempt an atomic replacement. Startup reports malformed or unreadable records instead of silently replacing them.
 
-The persistence implementation includes:
-- JSON serialization and deserialization using Gson.
-- Validation of stored records during startup.
-- Decimal monetary values stored as strings.
-- ISO-8601 transaction timestamps.
-- Temporary files during writes.
-- Atomic file replacement where supported.
-- Error reporting when stored JSON data is malformed or unreadable.
+Keep `data/` out of source control because it contains customer and financial information. Keep `statements/` out of source control if exported customer statements are present.
 
-## 10. Transaction Management and Data Consistency
+## 12. Migration from the earlier email/password version
 
-The application maintains transaction records for deposits, withdrawals, opening deposits, and transfers.
+The new user repository still reads the existing `users.json` user records, and old account numbers and transaction histories are retained.
 
-Each transaction contains a unique transaction ID, transaction type, amount, and timestamp.
+- Existing credential records from the previous patch are recognised as legacy credentials. Their old password can be used for one migration login; the user is then required to run `change-pin` and choose a 4–6 digit PIN.
+- Older customer records that never had a persisted password hash cannot authenticate directly. An administrator must use `set-pin <user-id-or-email>` to create a temporary PIN for them.
+- Existing account and transaction data remain linked to their owners. Back up the `data/` directory before replacing source files.
 
-A separate `TransactionRepository` handles transaction storage instead of placing all transaction persistence responsibilities inside `AccountRepository`.
+## 13. Custom exceptions
 
-For transfers:
-- The source account is debited.
-- The destination account is credited.
-- Corresponding debit and credit transactions are created with a shared reference ID.
-- Transaction data is staged before account records are committed.
-- Account transaction counts act as commit markers to help recover from interrupted writes.
+The `exception` package includes named exceptions for the main expected failure cases:
 
-The application also uses an injected Java `Clock` in `TransactionService` to control transaction timestamps and daily withdrawal-limit calculations.
+- `InsufficientFundsException`
+- `AccountNotFoundException`
+- `AccountLockedException`
+- `DailyLimitExceededException`
+- `InvalidAmountException`
+- `AuthenticationException`
+- `UnauthorizedActionException`
+- `AccountClosedException`
+- `TransactionNotReversibleException`
+- `StatementExportException`
 
-## 11. Existing Data Migration
+These extend `IllegalArgumentException` or `IllegalStateException` so the CLI can present clear messages without terminating the command loop.
 
-The updated implementation supports existing customer records and account data.
+## 14. Demo and testing notes
 
-Older customer records without persistent password hashes are recognised as customer accounts and remain linked to their existing bank accounts.
+`ServicesDemo.java` demonstrates the service layer with in-memory repositories. It uses the updated service constructors and a numeric demo PIN. Its data disappears when the demo process ends.
 
-Because the earlier authentication implementation kept password hashes in memory, those hashes cannot be recovered after the application closes.
-
-An administrator must therefore reset the passwords of existing customers using:
-
-```text
-set-password customer@email.com
-```
-
-Customers can then log in and change their temporary passwords.
-
-Older transaction records are also supported through legacy-field defaults when loading historical data.
-
-## 12. Current Implementation Scope and Remaining Improvements
-
-The application implements administrator and customer authentication, account management, JSON persistence, financial operations, and transaction statements.
-
-However, some requirements from the original project specification remain potential future improvements:
-
-1. **PIN-based authentication:** The application currently uses email and password authentication instead of the specified four-to-six-digit numeric PIN.
-2. **Transaction reversals:** Reversals with links to original transactions have not yet been implemented.
-3. **Monthly interest posting:** Automatic monthly interest application remains outstanding.
-4. **Withdrawal fees:** The fee strategy classes require further integration into withdrawal operations.
-5. **Advanced transaction filtering:** Filtering by transaction type and minimum or maximum amount remains outstanding.
-6. **Statement export:** Exporting statements to separate JSON files remains outstanding.
-7. **Concurrency:** Further service-level locking and transaction coordination would strengthen protection against simultaneous operations.
-8. **Custom exceptions:** The complete hierarchy of application-specific exceptions from the project specification remains outstanding.
-
-## 13. Conclusion
-
-The Console Banking Ledger demonstrates the practical application of Java object-oriented programming, software architecture, financial calculations, authentication, file handling, and data persistence.
-
-It provides separate administrator and customer workflows, supports multiple account types, maintains financial transaction records, and preserves application data between executions.
-
-The project also demonstrates how design patterns and layered architecture can be applied to organise a financial application into maintainable and reusable components.
+The main CLI uses the JSON repositories and retains data between runs. Before submission, run `mvn clean compile`, `mvn test`, and the end-to-end administrator/customer workflows. In particular, verify restart persistence, failed-login locking/unlocking, fee threshold behaviour, monthly interest idempotency, transfer/reversal consistency, filtering, and exported JSON contents.

@@ -1,15 +1,17 @@
 package com.team.banking.model;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import com.team.banking.exception.AccountClosedException;
+import com.team.banking.exception.InvalidAmountException;
 
 public abstract class Account {
     private final String accountNumber;
     private final Customer owner;
     protected volatile BigDecimal balance;
     private final BigDecimal dailyWithdrawalLimit;
-    private final List<Transaction> transactions = new ArrayList<>();
+    private final List<Transaction> transactions = new CopyOnWriteArrayList<>();
     private volatile boolean closed;
 
     protected Account(String accountNumber, Customer owner, BigDecimal balance,
@@ -39,17 +41,17 @@ public abstract class Account {
     public List<Transaction> getTransactions() { return transactions; }
     public boolean isClosed() { return closed; }
 
-    public void deposit(BigDecimal amount) {
+    public synchronized void deposit(BigDecimal amount) {
         ensureOpen();
         if (amount == null || amount.signum() <= 0) {
-            throw new IllegalArgumentException("Deposit amount must be positive.");
+            throw new InvalidAmountException("Deposit amount must be positive.");
         }
         balance = balance.add(amount);
     }
 
-    public void close() {
+    public synchronized void close() {
         if (closed) {
-            throw new IllegalStateException("This account is already closed.");
+            throw new AccountClosedException("This account is already closed.");
         }
         if (balance.compareTo(BigDecimal.ZERO) != 0) {
             throw new IllegalArgumentException("An account can be closed only when its balance is zero.");
@@ -62,12 +64,12 @@ public abstract class Account {
 
     protected final void ensureOpen() {
         if (closed) {
-            throw new IllegalStateException("This account is closed.");
+            throw new AccountClosedException("This account is closed.");
         }
     }
 
     /** Used by the transaction coordinator to roll back an uncommitted operation. */
-    public final void restoreBalanceAfterFailedCommit(BigDecimal previousBalance) {
+    public final synchronized void restoreBalanceAfterFailedCommit(BigDecimal previousBalance) {
         if (previousBalance == null) {
             throw new IllegalArgumentException("Previous balance is required.");
         }
@@ -75,7 +77,7 @@ public abstract class Account {
     }
 
     /** Used by JSON restoration; older account records default to open. */
-    public final void restoreClosedState(boolean value) {
+    public final synchronized void restoreClosedState(boolean value) {
         this.closed = value;
     }
 }

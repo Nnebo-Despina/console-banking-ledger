@@ -42,12 +42,16 @@ public final class JsonUserRepository implements UserRepository {
             users.put(id, user);
 
             // Old users.json files did not contain credentials. Such accounts remain in the
-            // customer list but cannot log in until an administrator sets a new password.
+            // customer list but cannot log in until an administrator sets a new PIN.
             String salt = optional(row, "salt", "");
             String hash = optional(row, "passwordHash", "");
             int attempts = parseInt(optional(row, "failedAttempts", "0"), "failedAttempts");
             boolean locked = Boolean.parseBoolean(optional(row, "locked", "false"));
             boolean forceChange = Boolean.parseBoolean(optional(row, "mustChangePassword", "true"));
+            boolean pinCredentialVersion = "1".equals(optional(row, "pinVersion", ""));
+            // Existing patch versions stored password hashes without a PIN-version marker.
+            // Their hashes remain usable for one migration login, but the user must set a PIN.
+            if (!pinCredentialVersion && !salt.isBlank() && !hash.isBlank()) forceChange = true;
             credentials.put(id, new AuthCredential(salt, hash, attempts, locked, forceChange));
         }
     }
@@ -118,6 +122,7 @@ public final class JsonUserRepository implements UserRepository {
             row.addProperty("role", user.getRole().name());
             row.addProperty("salt", credential == null ? "" : credential.salt());
             row.addProperty("passwordHash", credential == null ? "" : credential.passwordHash());
+            row.addProperty("pinVersion", "1");
             row.addProperty("failedAttempts", Integer.toString(credential == null ? 0 : credential.failedAttempts()));
             row.addProperty("locked", Boolean.toString(credential != null && credential.locked()));
             row.addProperty("mustChangePassword", Boolean.toString(credential != null && credential.mustChangePassword()));

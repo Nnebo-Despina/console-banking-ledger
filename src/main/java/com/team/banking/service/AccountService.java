@@ -2,6 +2,8 @@ package com.team.banking.service;
 
 import com.team.banking.model.Account;
 import com.team.banking.model.AccountFactory;
+import com.team.banking.exception.AccountNotFoundException;
+import com.team.banking.exception.UnauthorizedActionException;
 import com.team.banking.model.Customer;
 import com.team.banking.repository.AccountRepository;
 import com.team.banking.repository.UserRepository;
@@ -98,14 +100,14 @@ public class AccountService {
     public Account getAccount(String accountNumber) {
         String number = Validators.requireText(accountNumber, "Account number");
         return accountRepository.findByAccountNumber(number)
-                .orElseThrow(() -> new IllegalArgumentException("Account not found."));
+                .orElseThrow(() -> new AccountNotFoundException("Account not found."));
     }
 
     public Account getOwnedAccount(String accountNumber) {
         var user = authenticationService.requireRole(com.team.banking.model.UserRole.CUSTOMER);
         Account account = getAccount(accountNumber);
         if (!account.getOwner().getUserId().equals(user.getUserId())) {
-            throw new IllegalArgumentException("You do not have access to this account.");
+            throw new UnauthorizedActionException("You do not have access to this account.");
         }
         return account;
     }

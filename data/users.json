@@ -1,35 +1,14 @@
 [
   {
-    "userId": "58f2ea97-f958-46df-99f8-4e3428001e97",
-    "fullName": "Nnebo Des",
-    "email": "des@gmail.com",
-    "role": "CUSTOMER",
-    "salt": "HSHcYPkm6lIrb1ysWgO+tg\u003d\u003d",
-    "passwordHash": "xBn/wmiB6GNYJoRaflO6L6iEipMgSUQDQRX6AuVZ33Q\u003d",
-    "failedAttempts": "0",
-    "locked": "false",
-    "mustChangePassword": "false"
-  },
-  {
-    "userId": "baa54f77-9782-407a-be2d-ea6d47fbb362",
-    "fullName": "Nnebo Des",
-    "email": "deis@gmail.com",
-    "role": "CUSTOMER",
-    "salt": "DtMCgOMZqyDpgoKOKp24dw\u003d\u003d",
-    "passwordHash": "zxfo0fsSfUaLmySe4XvN8QuoAVNFvcrRDkoIPRg558I\u003d",
-    "failedAttempts": "0",
-    "locked": "false",
-    "mustChangePassword": "false"
-  },
-  {
-    "userId": "ADMIN-8a5984e5-8888-4d85-bf35-38a3cb21263a",
+    "userId": "ADMIN-53c1e3c1-6006-4609-80e6-f943d8156a2c",
     "fullName": "System Administrator",
     "email": "admin@bank.local",
     "role": "ADMIN",
-    "salt": "/WXNKJLy+PRWIqo6Y+9jag\u003d\u003d",
-    "passwordHash": "aKmqSMvwJZaIQzzK9DqmZtXXIyIJIyeubTpTbHn2kBE\u003d",
+    "salt": "KAZxhmuNGzYOefInEe0Wpg\u003d\u003d",
+    "passwordHash": "20xBqF1qQCTqU4B5/RZUzMYIGZtrzU09iLJvDfjZaCk\u003d",
+    "pinVersion": "1",
     "failedAttempts": "0",
     "locked": "false",
-    "mustChangePassword": "false"
+    "mustChangePassword": "true"
   }
 ]

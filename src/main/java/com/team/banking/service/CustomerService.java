@@ -16,11 +16,11 @@ public class CustomerService {
         this.authenticationService = authenticationService;
     }
 
-    public Customer registerCustomer(String fullName, String email, String password) {
-        return registerCustomer(fullName, email, password, false);
+    public Customer registerCustomer(String fullName, String email, String pin) {
+        return registerCustomer(fullName, email, pin, false);
     }
 
-    public Customer registerCustomer(String fullName, String email, String password, boolean forcePasswordChange) {
+    public Customer registerCustomer(String fullName, String email, String pin, boolean forcePinChange) {
         String cleanName = Validators.requireText(fullName, "Full name");
         String cleanEmail = Validators.requireText(email, "Email");
         if (!cleanEmail.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
@@ -30,7 +30,7 @@ public class CustomerService {
             throw new IllegalArgumentException("A user with this email already exists.");
         }
         Customer customer = new Customer(UUID.randomUUID().toString(), cleanName, cleanEmail);
-        authenticationService.register(customer, password, forcePasswordChange);
+        authenticationService.register(customer, pin, forcePinChange);
         return customer;
     }
 

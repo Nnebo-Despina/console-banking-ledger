@@ -1,6 +1,16 @@
 C:\Users\Despina\Documents\Despina's Coding Folder\E-PROJECTS\Java Bank App\console-banking-ledger\src\main\java\com\team\banking\cli\BankingCLI.java
 C:\Users\Despina\Documents\Despina's Coding Folder\E-PROJECTS\Java Bank App\console-banking-ledger\src\main\java\com\team\banking\command\Command.java
 C:\Users\Despina\Documents\Despina's Coding Folder\E-PROJECTS\Java Bank App\console-banking-ledger\src\main\java\com\team\banking\command\CommandParser.java
+C:\Users\Despina\Documents\Despina's Coding Folder\E-PROJECTS\Java Bank App\console-banking-ledger\src\main\java\com\team\banking\exception\AccountClosedException.java
+C:\Users\Despina\Documents\Despina's Coding Folder\E-PROJECTS\Java Bank App\console-banking-ledger\src\main\java\com\team\banking\exception\AccountLockedException.java
+C:\Users\Despina\Documents\Despina's Coding Folder\E-PROJECTS\Java Bank App\console-banking-ledger\src\main\java\com\team\banking\exception\AccountNotFoundException.java
+C:\Users\Despina\Documents\Despina's Coding Folder\E-PROJECTS\Java Bank App\console-banking-ledger\src\main\java\com\team\banking\exception\AuthenticationException.java
+C:\Users\Despina\Documents\Despina's Coding Folder\E-PROJECTS\Java Bank App\console-banking-ledger\src\main\java\com\team\banking\exception\DailyLimitExceededException.java
+C:\Users\Despina\Documents\Despina's Coding Folder\E-PROJECTS\Java Bank App\console-banking-ledger\src\main\java\com\team\banking\exception\InsufficientFundsException.java
+C:\Users\Despina\Documents\Despina's Coding Folder\E-PROJECTS\Java Bank App\console-banking-ledger\src\main\java\com\team\banking\exception\InvalidAmountException.java
+C:\Users\Despina\Documents\Despina's Coding Folder\E-PROJECTS\Java Bank App\console-banking-ledger\src\main\java\com\team\banking\exception\StatementExportException.java
+C:\Users\Despina\Documents\Despina's Coding Folder\E-PROJECTS\Java Bank App\console-banking-ledger\src\main\java\com\team\banking\exception\TransactionNotReversibleException.java
+C:\Users\Despina\Documents\Despina's Coding Folder\E-PROJECTS\Java Bank App\console-banking-ledger\src\main\java\com\team\banking\exception\UnauthorizedActionException.java
 C:\Users\Despina\Documents\Despina's Coding Folder\E-PROJECTS\Java Bank App\console-banking-ledger\src\main\java\com\team\banking\Main.java
 C:\Users\Despina\Documents\Despina's Coding Folder\E-PROJECTS\Java Bank App\console-banking-ledger\src\main\java\com\team\banking\model\Account.java
 C:\Users\Despina\Documents\Despina's Coding Folder\E-PROJECTS\Java Bank App\console-banking-ledger\src\main\java\com\team\banking\model\AccountFactory.java
@@ -42,3 +52,7 @@ C:\Users\Despina\Documents\Despina's Coding Folder\E-PROJECTS\Java Bank App\cons
 C:\Users\Despina\Documents\Despina's Coding Folder\E-PROJECTS\Java Bank App\console-banking-ledger\src\main\java\com\team\banking\service\TransferService.java
 C:\Users\Despina\Documents\Despina's Coding Folder\E-PROJECTS\Java Bank App\console-banking-ledger\src\main\java\com\team\banking\service\Validators.java
 C:\Users\Despina\Documents\Despina's Coding Folder\E-PROJECTS\Java Bank App\console-banking-ledger\src\main\java\com\team\banking\ServicesDemo.java
+C:\Users\Despina\Documents\Despina's Coding Folder\E-PROJECTS\Java Bank App\console-banking-ledger\src\main\java\com\team\banking\strategy\CurrentAccountFeeStrategy.java
+C:\Users\Despina\Documents\Despina's Coding Folder\E-PROJECTS\Java Bank App\console-banking-ledger\src\main\java\com\team\banking\strategy\InterestStrategy.java
+C:\Users\Despina\Documents\Despina's Coding Folder\E-PROJECTS\Java Bank App\console-banking-ledger\src\main\java\com\team\banking\strategy\SavingsInterestStrategy.java
+C:\Users\Despina\Documents\Despina's Coding Folder\E-PROJECTS\Java Bank App\console-banking-ledger\src\main\java\com\team\banking\strategy\WithdrawalFeeStrategy.java

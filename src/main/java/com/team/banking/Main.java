@@ -25,7 +25,7 @@ import java.util.UUID;
 
 public class Main {
     private static final String DEFAULT_ADMIN_EMAIL = "admin@bank.local";
-    private static final String DEFAULT_ADMIN_PASSWORD = "ChangeMe123!";
+    private static final String DEFAULT_ADMIN_PIN = "482916";
 
     public static void main(String[] args) {
         try {
@@ -39,13 +39,19 @@ public class Main {
             bootstrapAdministrator(users, authentication);
 
             CustomerService customers = new CustomerService(users, authentication);
+            Clock applicationClock = Clock.systemDefaultZone();
             TransactionService transactions = new TransactionService(
-                    accountRepository, ledger, authentication, Clock.systemDefaultZone());
+                    accountRepository, ledger, authentication, applicationClock);
+            int interestAccounts = transactions.postDueMonthlyInterestOnStartup();
+            if (interestAccounts > 0) {
+                System.out.println("Monthly savings interest was automatically posted to "
+                        + interestAccounts + " account(s).");
+            }
             AccountService accounts = new AccountService(
                     accountRepository, users, authentication, transactions);
             TransferService transfers = new TransferService(accounts, transactions, authentication);
-            StatementService statements = new StatementService(accounts);
-            AdminService admin = new AdminService(authentication, customers, accounts, ledger);
+            StatementService statements = new StatementService(accounts, applicationClock);
+            AdminService admin = new AdminService(authentication, customers, accounts, ledger, transactions);
 
             CommandParser parser = new CommandParser(authentication, customers, accounts,
                     transactions, transfers, statements, admin, System.out);
@@ -61,16 +67,16 @@ public class Main {
         if (adminExists) return;
 
         String email = System.getenv().getOrDefault("BANK_ADMIN_EMAIL", DEFAULT_ADMIN_EMAIL);
-        String password = System.getenv().getOrDefault("BANK_ADMIN_PASSWORD", DEFAULT_ADMIN_PASSWORD);
+        String pin = System.getenv().getOrDefault("BANK_ADMIN_PIN", DEFAULT_ADMIN_PIN);
         authentication.register(new Admin("ADMIN-" + UUID.randomUUID(), "System Administrator", email),
-                password, true);
+                pin, true);
         System.out.println("A default administrator account has been created.");
         System.out.println("Admin email: " + email);
-        if (System.getenv("BANK_ADMIN_PASSWORD") == null) {
-            System.out.println("Temporary password: " + DEFAULT_ADMIN_PASSWORD);
+        if (System.getenv("BANK_ADMIN_PIN") == null) {
+            System.out.println("Temporary PIN: " + DEFAULT_ADMIN_PIN);
         } else {
-            System.out.println("Temporary password: supplied through BANK_ADMIN_PASSWORD.");
+            System.out.println("Temporary PIN: supplied through BANK_ADMIN_PIN.");
         }
-        System.out.println("Sign in and run change-password before using admin commands.");
+        System.out.println("Sign in and run change-pin before using admin commands.");
     }
 }

@@ -1,6 +1,6 @@
 package com.team.banking.model;
 
-/** Persistent authentication data. The password itself is never stored. */
+/** Persistent authentication data. The PIN itself is never stored. */
 public record AuthCredential(
         String salt,
         String passwordHash,
